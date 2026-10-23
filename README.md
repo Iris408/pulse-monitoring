@@ -11,13 +11,14 @@ Pulse is a containerised infrastructure monitoring platform built with Python, F
 - CPU, memory, disk, and uptime monitoring
 - Configurable warning and critical thresholds
 - FastAPI `/health` and `/metrics` endpoints
-- Prometheus-compatible metrics
+- Prometheus-compatible metrics and scraping
 - Grafana infrastructure dashboard
 - Slack and email notifications
 - Alert cooldowns and recovery notifications
 - Structured application logging
-- Containerised deployment with Docker Compose
-- GitHub Actions backend CI
+- Docker Compose deployment with pinned Prometheus and Grafana image versions
+- GitHub Actions CI with a full-stack Docker Compose smoke test
+- Weekly Dependabot checks for Docker images and GitHub Actions
 
 ## Current Status
 
@@ -30,7 +31,9 @@ Pulse provides system resource monitoring, configurable Slack and email alerting
 
 v2.3.2 introduced a modular application structure separating the API, monitoring, alerting, logging, and dashboard components to improve maintainability.
 
-Future work is limited to maintenance, automated testing, dependency and security updates, alert reliability, documentation, and infrastructure improvements.
+Recent maintenance work expanded CI to start the complete Docker Compose stack, verify the API, Prometheus, and Grafana health endpoints, and confirm that Prometheus is successfully scraping Pulse. Prometheus and Grafana images are pinned to explicit versions, and Dependabot checks Docker images and GitHub Actions weekly.
+
+Future work is focused on maintenance, security and dependency updates, alert reliability, documentation, and infrastructure improvements.
 
 See the [Roadmap](./docs/roadmap.md) for release history and maintenance work.
 
@@ -42,7 +45,8 @@ See the [Roadmap](./docs/roadmap.md) for release history and maintenance work.
 | Observability | Prometheus, Grafana |
 | Alerting | Slack Webhooks, SMTP Email |
 | Infrastructure | Docker, Docker Compose |
-| CI | GitHub Actions (Backend CI) |
+| CI | GitHub Actions, pytest, Docker Compose smoke tests |
+| Dependency updates | Dependabot |
 | Configuration | python-dotenv |
 | Utilities | requests, colorama |
 
@@ -73,7 +77,7 @@ System Resources
 
 Prometheus periodically scrapes metrics exposed by Pulse, while Grafana queries Prometheus to provide visual monitoring of CPU, memory, disk usage, and system uptime.
 
-For a more in-depth breakdown of the system design, please see the [Architecture Documentation](./docs/architecture.md).
+For a more in-depth breakdown of the system design, see the [Architecture Documentation](./docs/architecture.md).
 
 ## Screenshots
 
@@ -113,7 +117,8 @@ Run the terminal monitor:
 ```bash
 python3 main.py
 ```
-**Or start the FastAPI service:**
+
+Or start the FastAPI service:
 
 ```bash
 python3 -m uvicorn health_api:app --reload --port 8000
@@ -139,7 +144,7 @@ Stop the stack:
 docker compose down
 ```
 
-For more detailed installation and configuration instructions, please see the [Setup Guide](./docs/setup.md).
+Prometheus and Grafana use explicit image versions in `docker-compose.yml` to make deployments more predictable. For detailed installation and configuration instructions, see the [Setup Guide](./docs/setup.md).
 
 ## Monitoring Endpoints
 
@@ -156,11 +161,11 @@ When running locally:
 
 ## Testing and CI
 
-GitHub Actions automatically validates the Python backend on pushes and pull requests to `main`.
+GitHub Actions runs automated backend tests on pushes and pull requests to `main`. The workflow also builds and starts the Docker Compose monitoring stack, checks the API, Prometheus, and Grafana health endpoints, and verifies that Prometheus is scraping Pulse successfully.
 
-The current CI workflow runs automated backend checks to help catch regressions before changes are merged.
+On failure, the workflow collects the Compose service logs. It shuts down the stack and removes its CI volumes afterward.
 
-Additional automated testing, security checks, and Docker validation are tracked as maintenance improvements.
+Dependabot checks Docker images and GitHub Actions weekly and opens pull requests for available updates.
 
 ## Project Structure
 
@@ -177,7 +182,9 @@ pulse-infrastructure-monitor/
 ├── docs/
 ├── screenshots/
 ├── examples/
-├── .github/workflows/
+├── .github/
+│   ├── dependabot.yml
+│   └── workflows/
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
@@ -187,23 +194,10 @@ pulse-infrastructure-monitor/
 
 Detailed engineering documentation is available in [`docs/`](./docs/).
 
-| Document | Description |
-| --- | --- |
-| [Alerting](./docs/alerting.md) | Slack, email, thresholds, cooldowns, and recovery alerts |
-| [Architecture](./docs/architecture.md) | System architecture and component responsibilities |
-| [Configuration](./docs/configuration.md) | Environment variables and application configuration |
-| [Grafana Dashboard](./docs/grafana-dashboard.md) | Dashboard setup, metrics, and panels |
-| [Learning Notes](./docs/learning-notes.md) | Technical lessons and engineering decisions |
-| [Logging](./docs/logging.md) | Logging architecture and operational logs |
-| [Monitoring Stack](./docs/monitoring-stack.md) | FastAPI, Prometheus, Grafana, and Docker integration |
-| [Project Details](./docs/project-details.md) | Additional implementation details |
-| [Roadmap](./docs/roadmap.md) | Current release and future development |
-| [Setup](./docs/setup.md) | Local and Docker installation |
-| [Troubleshooting](./docs/troubleshooting.md) | Common problems and diagnostic steps |
-
 
 ## License
-This project is licensed under the terms in [MIT LICENSE](./LICENSE) file for details.
+
+This project is licensed under the terms in the [MIT License](./LICENSE).
 
 ## Author
 
