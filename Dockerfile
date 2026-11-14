@@ -1,7 +1,7 @@
 # EN: Python base image
 # JP: Python ベースイメージ
 
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 # EN: Prevent Python from writing .pyc files and buffer-free logs.
 # JP: .pycファイルの生成を防ぎ、ログを即時出力します。
